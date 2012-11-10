@@ -1,8 +1,10 @@
-Installing :
+Installing
+==========
 
-npm install ar-drone
-npm install opencv
+    npm install ar-drone 
+    npm install opencv
 
-Running :
+Running
+=======
 
-node app.js
+    node app.js
