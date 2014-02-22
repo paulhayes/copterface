@@ -7,12 +7,11 @@ var fs = require('fs');
 
 console.log('Connecting png stream ...');
 
-var pngStream = arDrone.createPngStream();
 //var stream  = arDrone.createUdpNavdataStream();
 var client = arDrone.createClient();
+var pngStream = client.getPngStream();
 var processingImage = false;
 var lastPng;
-var face_cascade = new cv.CascadeClassifier('node_modules/opencv/data/haarcascade_frontalface_alt2.xml');
 var navData;
 var flying = false;
 var startTime = new Date().getTime();
@@ -36,14 +35,14 @@ pngStream
         processingImage = true;
         cv.readImage( lastPng, function(err, im) {
           var opts = {};
-          face_cascade.detectMultiScale(im, function(err, faces) {
+          im.detectObject(cv.FACE_CASCADE, opts, function(err, faces) {
 
             var face;
             var biggestFace;
 
             for(var k = 0; k < faces.length; k++) {
-
               face = faces[k];
+
               if( !biggestFace || biggestFace.width < face.width ) biggestFace = face;
 
               //im.rectangle([face.x, face.y], [face.x + face.width, face.y + face.height], [0, 255, 0], 2);
