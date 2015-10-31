@@ -4,8 +4,8 @@ var client = arDrone.createClient();
 var pngStream = client.getPngStream();
 
 
-var copterface = Copterface(pngStream,function(rects){
-	console.log(rects);
+var copterface = Copterface(pngStream,function(info){
+	console.log(info);
 });
 
 copterface.start();
