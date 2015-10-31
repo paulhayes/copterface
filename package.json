@@ -1,6 +1,6 @@
 {
   "name": "copterface",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Created during a nodecopter hackday in Brighton. This script attempts to position an ar-drone so that is center any face detected using opencv in the center of it's field of vision. EXPERIMENTAL",
   "main": "index.js",
   "scripts": {
