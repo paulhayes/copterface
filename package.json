@@ -18,15 +18,17 @@
   "homepage": "https://github.com/paulhayes/copterface#readme",
   "dependencies": {
     "ar-drone": "^0.3.3",
-    "express": "^4.13.3",
+    "express": "^4.16.1",
     "jsfeat": "^0.0.8",
-    "pica": "^1.0.7",
-    "pngjs": "^0.4.0"
+    "pica": "^1.1.1",
+    "pngjs": "^0.4.0",
+    "pngjs-draw": "0.0.6"
   },
   "engine": "node ^4.1.0",
   "maintainers": [
-  {
-    "name": "Paul Hayes",
-    "email": "fluidchaos@gmail.com"
-  }]
+    {
+      "name": "Paul Hayes",
+      "email": "fluidchaos@gmail.com"
+    }
+  ]
 }
