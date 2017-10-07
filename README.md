@@ -1,10 +1,9 @@
 Installing
 ==========
 
-    npm install ar-drone 
-    npm install opencv
+    npm install
 
 Running
 =======
 
-    node app.js
+    node example.js
