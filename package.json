@@ -1,6 +1,6 @@
 {
   "name": "copterface",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Created during a nodecopter hackday in Brighton. This script attempts to position an ar-drone so that is center any face detected using opencv in the center of it's field of vision. EXPERIMENTAL",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,6 @@
   "homepage": "https://github.com/paulhayes/copterface#readme",
   "dependencies": {
     "ar-drone": "^0.3.3",
-    "express": "^4.16.1",
     "jsfeat": "^0.0.8",
     "pica": "^1.1.1",
     "pngjs": "^0.4.0",
