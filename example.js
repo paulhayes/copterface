@@ -16,8 +16,8 @@ const udpNavdatasStream = new Client.UdpNavdataStream();
 const FLYING_OK = "FLYING_OK";
 const CTRL_FLYING = "CTRL_FLYING";
 const videoOpts = {imageSize:"320x180"};
-const verticalSpeed = 1;
-const turnSpeed = 0.1;
+const verticalSpeed = 0.5;
+const turnSpeed = 0.5;
 
 
 const pngEncoder = new Client.PngEncoder(videoOpts);
@@ -44,21 +44,17 @@ var lastLED = 0;
 var navdata;
 var movement = {x:0,y:0};
 var flying = false;
-var emergency = true;
+var emergency = false;
 
-setTimeout(()=>{
-	console.log("Reseting drone");
-	emergency = false;
-	control.ref({ fly:flying, emergency:emergency });
-  	control.flush();
 
-},1000);
-
-var copterface = Copterface(pngEncoder,{ outputImage:true },function(info){
+var copterface = Copterface(pngEncoder,{ outputImage:false },function(info){
 	if( !navdata || !navdata.demo ){
+		movement.x = 0;
+		movement.y = 0;
 		move(movement);
 		return;
 	}
+
 	process.stdout.write('\x1B[2J\x1B[0f');
 	console.log("SPACE to takeoff and land. Debug face information can be viewed at http://localhost:8000");
 	var best = info.rects.reduce((a,b)=>(a && a.confidence>b.confidence)?a:b, null);
@@ -102,9 +98,12 @@ var copterface = Copterface(pngEncoder,{ outputImage:true },function(info){
 		console.log("no face detected");		
 		movement.x = 0;
 
-		if( navdata.demo.altitude < 1.2 ){
+		if( navdata.demo.altitude < 1 ){
 			movement.y = verticalSpeed;
 
+		}
+		else if( navdata.demo.altitude > 1.6 ){
+			movement.y = -verticalSpeed;
 		}
 	}
 
@@ -122,7 +121,7 @@ function move(movement){
 	//var ref = {  }
 	//control.ref(ref);
 	var pcmd = {};
-	if( flying ){
+	if( true ){
 		pcmd[ ( movement.x > 0 ) ? "clockwise":"counterClockwise" ] = Math.abs(movement.x);
 		pcmd[ ( movement.y > 0 ) ? "up":"down" ] = Math.abs(movement.y);
 	}
@@ -137,16 +136,45 @@ udpNavdatasStream.resume();
 
 copterface.start();
 
+setTimeout(()=>{
+	control.config('general:navdata_demo', 'TRUE');
+},500);
+
 readline.emitKeypressEvents(process.stdin);
 process.stdin.setRawMode(true);
 
 process.stdin.on('keypress', (str, key) => {
+
   if (key.ctrl && key.name === 'c') {
     process.exit();
   }else if(key.name === 'c'){
-  	client.calibrate(0);
+  	//client.calibrate(0);
+  	if( navdata.droneState.flying === 0 ){
+	  	control.raw('FTRIM',)
+		control.flush();
+		console.log("setting ground");
+  	}
   }
   if( key.name === 'space' && navdata){
+
+  	if( navdata.droneState.emergencyLanding === 1 ){
+  		var startTime = Date.now();
+  		var intervalID = setInterval(()=>{
+  			emergency = true;
+			console.log("Reseting drone");
+			control.config('general:navdata_demo', 'TRUE');
+			control.ref({ fly:flying, emergency:emergency });
+		  	control.flush();
+		  	var elapsed = Date.now() - startTime;
+		  	if( elapsed >1000 ){
+		  		clearInterval(intervalID);
+		  		emergency = false;
+		  	}
+  		},30);
+  		
+		return;
+  	}
+
   	if( navdata.droneState.flying === 0 ){
 	  	//client.takeoff();
 	  	flying = true;
@@ -157,8 +185,10 @@ process.stdin.on('keypress', (str, key) => {
 
   }
   if( key.name === 'escape' ){
-  	emergency = true;
-  	move(movement);
+  	flying = false;
+  	control.raw('REF', 1<<8);
+  	control.flush();
+
   }
 });
 
