@@ -2,13 +2,17 @@ Installing
 ==========
 
 ```
-npm install
+npm install copterface
+```
+or checkout from github
+```
+git clone git@github.com:paulhayes/copterface.git
 ```
 
 Running Example
 ==========
 
-    node example.js
+    node node_modules/copterface/example.js
 
 Using the library
 =========
