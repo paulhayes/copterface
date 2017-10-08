@@ -9,3 +9,5 @@ const readline = require('readline');
 const pngServer = new PngServer();
 
 /* This is a stub for now. The most important test is that the dependancies have loaded */
+
+setTimeout(()=>process.exit(),50);
