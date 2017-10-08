@@ -15,7 +15,7 @@ const udpNavdatasStream = new Client.UdpNavdataStream();
 
 const FLYING_OK = "FLYING_OK";
 const CTRL_FLYING = "CTRL_FLYING";
-const videoOpts = {imageSize:"320x180"};
+const videoOpts = {imageSize:"320x170"};
 const verticalSpeed = 0.5;
 const turnSpeed = 0.25;
 
@@ -32,13 +32,18 @@ var videoEventCallback = function(err) {
       }, 1000);
     }
   }
+  
+  pngEncoder.on('error', (e)=>{
+  	console.log(e);
+  	process.exit();
+  });
 
   videoStream.connect(videoEventCallback);
   videoStream.on('error', videoEventCallback);
 
   videoStream.on('data', function(data) {
-    pngEncoder.write(data);
-  });  
+  	pngEncoder.write(data);
+  });
 
 var lastLED = 0;
 var navdata;
