@@ -1,3 +1,6 @@
+# Copterface
+## Facial recognition for Parrot AR Drone 2.0 [![Build Status](https://travis-ci.org/paulhayes/copterface.svg?branch=master)](https://travis-ci.org/paulhayes/copterface)
+
 Installing
 ==========
 

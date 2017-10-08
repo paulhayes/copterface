@@ -3,11 +3,14 @@
 const Copterface = require('./lib/copterface');
 const arDrone = require('ar-drone');
 const client = arDrone.createClient({imageSize:"160x90"});
+const control = arDrone.createUdpControl();
 const pngStream = client.getPngStream();
 const PNG = require('pngjs').PNG;
 const PngServer = require('./lib/PngServer');
 const readline = require('readline');
 const pngServer = new PngServer();
+
+
 const FLYING_OK = "FLYING_OK";
 const CTRL_FLYING = "CTRL_FLYING";
 

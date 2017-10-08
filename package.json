@@ -29,5 +29,8 @@
       "name": "Paul Hayes",
       "email": "fluidchaos@gmail.com"
     }
-  ]
+  ],
+  "scripts": {
+    "test": "node test.js"
+  }
 }
