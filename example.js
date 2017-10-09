@@ -16,8 +16,10 @@ const udpNavdatasStream = new Client.UdpNavdataStream();
 const FLYING_OK = "FLYING_OK";
 const CTRL_FLYING = "CTRL_FLYING";
 const videoOpts = {imageSize:"320x170"};
-const verticalSpeed = 0.5;
-const turnSpeed = 0.25;
+const altitudeAdjustSpeed = 1;
+const adjustSpeed = 0.2;
+const forwardVelocity = 200;
+const decay = 0.8;
 
 
 const pngEncoder = new Client.PngEncoder(videoOpts);
@@ -47,7 +49,7 @@ var videoEventCallback = function(err) {
 
 var lastLED = 0;
 var navdata;
-var movement = {x:0,y:0,z:0};
+var movement = {x:0,y:0,z:0,yaw:0,desiredForwardSpeed:0};
 var pcmd = {};
 var flying = false;
 var emergency = false;
@@ -76,7 +78,7 @@ var copterface = Copterface(pngEncoder,{ outputImage:true  },function(info){
 			control.animateLeds("blinkOrange",1,1);
 			lastLED = time;
 		}
-		console.log(best);
+		console.log("FACE AT x:"+best.x.toFixed(2)+",y:"+best.y.toFixed(2)+" width:"+best.width.toFixed(2));
 				
 		bestFaceRect = best;
 
@@ -102,7 +104,12 @@ var copterface = Copterface(pngEncoder,{ outputImage:true  },function(info){
 	drawBar(cols, navdata.demo.velocity.y / 200);
 	drawCentreFloat( cols, "y="+Math.round( navdata.demo.velocity.z ) );
 	drawBar(cols, navdata.demo.velocity.z / 200);
-	console.log("".padStart(cols,"#"));
+	drawCentreHeading(cols, "  movement  ");
+
+	Object.keys(movement).forEach((key)=>{
+		drawCentreFloat( cols, key+"="+movement[key].toFixed() );
+		drawBar(cols, movement[key]);
+	});
 		
 });
 
@@ -128,11 +135,12 @@ function drawBar(size,t){
 
 }
 
-function clearMovement(){
-	movement.x = 0;
-	movement.y = 0;
-	movement.z = 0;
-	movement.yaw = 0;
+function decayMovement(){
+	movement.x *= decay;
+	movement.y *= decay;
+	movement.z *= decay;
+	movement.yaw *= decay;
+	movement.desiredForwardSpeed *= decay;
 }
 
 function move(){
@@ -140,11 +148,10 @@ function move(){
 	//control.ref(ref);
 	if( navdata && navdata.droneState.flying ){
 		pcmd[ ( movement.yaw > 0 ) ? "clockwise":"counterClockwise" ] = Math.abs(movement.yaw);
-		pcmd[ ( movement.x > 0 ) ? "right" : "left" ] = Math.abs(movement.x);
-		pcmd[ ( movement.y > 0 ) ? "up":"down" ] = Math.abs(movement.y);
-		pcmd[ ( movement.z > 0 ) ? "front" : "back" ] = Math.abs(movement.z);
-		console.log("movement:",pcmd);
-	}
+		if(movement.x!=0) pcmd[ ( movement.x > 0 ) ? "right" : "left" ] = Math.abs(movement.x);
+		if(movement.y!=0) pcmd[ ( movement.y > 0 ) ? "up":"down" ] = Math.abs(movement.y);
+		if(movement.z!=0) pcmd[ ( movement.z > 0 ) ? "front" : "back" ] = Math.abs(movement.z);
+	} 
 	control.ref({ fly:flying, emergency:emergency });
 	control.pcmd(pcmd);
 	control.flush();
@@ -177,7 +184,7 @@ function update(){
 	driftCompensation();
 	lookAtFace();
 	move();	
-	clearMovement();
+	decayMovement();
 
 }
 
@@ -187,35 +194,40 @@ function lookAtFace(){
 		var best = bestFaceRect;
 		bestFaceRect = null;
 
-		if( best.x < -0.1 ){
-			movement.yaw = -turnSpeed;
+		const moveThreshold = 0.15;
+
+		if( best.x < -moveThreshold ){
+			movement.yaw = -adjustSpeed;
 		}
-		else if(best.x > 0.1){
-			movement.yaw = turnSpeed;
+		else if(best.x > moveThreshold){
+			movement.yaw = adjustSpeed;
 		}
 		else {
 			movement.yaw = 0;
 		}
 
-		if( best.y < -0.1 ){
-			movement.y = turnSpeed;
+		if( best.y < -moveThreshold ){
+			movement.y = adjustSpeed;
 		}
-		else if(best.y > 0.1){
-			movement.y = -turnSpeed;
+		else if(best.y > moveThreshold){
+			movement.y = -adjustSpeed;
 		
 		}
 		else {
 			movement.y = 0;
 		}
 
+		if( best.width > 0 && best.width < moveThreshold ){
+			movement.desiredForwardSpeed = forwardVelocity;
+		}
 
 }
 
 function driftCompensation(){
 	if( navdata.demo ){
 		var compensationThresold = 50;
-		if( Math.abs( navdata.demo.velocity.x ) > compensationThresold ){
-			movement.z = -navdata.demo.velocity.x / 2000 ;
+		if( Math.abs( navdata.demo.velocity.x - movement.desiredForwardSpeed ) > compensationThresold ){
+			movement.z = (-navdata.demo.velocity.x + movement.desiredForwardSpeed) / 2000 ;
 		}
 		if( Math.abs(navdata.demo.velocity.y) > compensationThresold ){
 			movement.x = -navdata.demo.velocity.y / 2000 ;
@@ -231,10 +243,10 @@ function correctAltitude(){
 	}
 
 	if( navdata.demo.altitude > 0 && navdata.demo.altitude < 1.2 ){
-		movement.y = verticalSpeed;
+		movement.y = altitudeAdjustSpeed;
 	}
 	else if( navdata.demo.altitude > 1.8 ){
-		movement.y = -verticalSpeed;
+		movement.y = -altitudeAdjustSpeed;
 	}
 
 }
