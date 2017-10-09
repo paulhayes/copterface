@@ -20,7 +20,7 @@ const altitudeAdjustSpeed = 1;
 const adjustSpeed = 0.2;
 const forwardVelocity = 200;
 const decay = 0.8;
-
+const frameDelayTimeout = 1000;
 
 const pngEncoder = new Client.PngEncoder(videoOpts);
 const videoStream = new Client.TcpVideoStream(videoOpts);
@@ -56,7 +56,7 @@ var emergency = false;
 var bestFaceRect;
 var newFrameRecieved = false;
 var lastFrameTime = Date.now();
-var frameDelayTimeout = 1000;
+
 var copterface = Copterface(pngEncoder,{ outputImage:true  },function(info){
 	if( !navdata || !navdata.demo ){
 		return;
